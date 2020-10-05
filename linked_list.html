@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Doubly linked list</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        .jumbotron {
+            min-height: 100vh;
+            height: 100%;
+            margin: 0;
+        }
+
+        .btn {
+            margin-left: 5px;
+        }
+
+        li {
+            margin: 6px 0;
+            font-size: 18px;
+        }
+
+        .btn-secondary {
+            margin-top: 10px;
+            margin-left: 0;
+        }
+
+        .btn-sm {
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="jumbotron">
+        <form onsubmit="return false">
+            <div class="input-group mb-3 col-sm-5 float-left">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="dataInput" placeholder="Title" aria-label="Title"
+                        aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" style="margin-left:0;" type="submit" onclick="createNode()"
+                            type="button">Add</button>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="logNodes()">Log list</button>
+            </div>
+            <ul id="list" style="display:inline-block"></ul>
+        </form>
+    </div>
+    <script>
+        /**
+        * Represents a node.
+        * @constructor
+        * @param {*} data - The data of the node.
+        */
+        class Node {
+            constructor(data) {
+                this.data = data.title;
+                this.previous = data.previous;
+                this.next = data.next;
+            }
+        }
+        /**
+        * An array of all nodes
+        * @type {Array}
+        */
+        let nodes = new Array();
+        /**
+        * Stores the last added node
+        * @type {*}
+        */
+        let lastAddedNode;
+        /**
+        * Represents a doubly linked list.
+        */
+        class DoublyLinkedList {
+            constructor() {
+                this.head = null;
+                this.tail = null;
+                this.length = 0;
+            }
+        }
+        /**
+        * A doubly linked list object
+        * @type {DoublyLinkedList}
+        */
+        let doublyLinkedList = new DoublyLinkedList();
+        /**
+        * Creates a new node and adds it to the doubly linked list
+        */
+        function createNode() {
+            const data = {
+                title: document.getElementById("dataInput").value
+            }
+            newNode = new Node(data);
+            doublyLinkedList.length += 1;
+            nodes.push(newNode);
+            if (!doublyLinkedList.head && !doublyLinkedList.tail) {
+                doublyLinkedList.head = newNode;
+                doublyLinkedList.tail = newNode;
+            }
+            if (doublyLinkedList.length > 1) {
+                nodes[nodes.indexOf(lastAddedNode)].next = nodes[nodes.indexOf(newNode)];
+                nodes[nodes.indexOf(newNode)].previous = nodes[nodes.indexOf(lastAddedNode)];
+                doublyLinkedList.tail = newNode;
+            }
+            lastAddedNode = newNode;
+            createListItem(newNode);
+        }
+        /**
+        * Adds the new node to the list in the page
+        * @param {Node} newNode - The new node to add to list
+        */
+        function createListItem(newNode) {
+            var div = document.createElement("div");
+            var node = document.createElement("li");
+            node.appendChild(div);
+            var delBtn = document.createElement("button");
+            var insertBtn = document.createElement("button");
+            insertBtn.className = "btn btn-primary";
+            var text = document.createTextNode(newNode.data + "\t");
+            delBtn.innerHTML = "Delete";
+            delBtn.className = "btn btn-danger";
+            insertBtn.innerHTML = "Insert";
+            delBtn.id = newNode.data;
+            div.appendChild(text);
+            div.appendChild(delBtn);
+            div.appendChild(insertBtn);
+            document.getElementById("list").appendChild(node);
+            document.getElementById("dataInput").value = null;
+            delBtn.onclick = function () { deleteFromList(delBtn) }
+            insertBtn.onclick = function () { insertNode(insertBtn) }
+        }
+        /**
+        * Inserts a new node in to an existing node's place
+        * @param {*} insertBtn - The insert button that was pressed
+        */
+        function insertNode(insertBtn) {
+            let selectedIndex = 0;
+            var userInput = prompt("Ievadiet elementu", "Nosaukums");
+            const data = { title: userInput }
+            newNode = new Node(data);
+            for (let index = 0; index < list.childNodes.length; index++) {
+                if (list.childNodes[index].contains(insertBtn)) {
+                    selectedIndex = index;
+                    nodes.splice(index, 0, newNode);
+                    if (index == 0) {
+                        doublyLinkedList.head = nodes[index];
+                        nodes[index + 1].previous = nodes[index];
+                        nodes[index].next = nodes[index + 1];
+                    }
+                    if (index == doublyLinkedList.length - 1) {
+                        doublyLinkedList.tail = nodes[index + 1];
+                        nodes[index + 1].previous = nodes[index];
+                        if (nodes[index - 1]) {
+                            nodes[index - 1].next = nodes[index];
+                        }
+                        nodes[index].next = nodes[index + 1];
+                        nodes[index].previous = nodes[index - 1];
+                    }
+                    if (index !== doublyLinkedList.length - 1 && index !== 0) {
+                        if (nodes[index - 1]) {
+                            nodes[index - 1].next = nodes[index];
+                            nodes[index].previous = nodes[index - 1];
+                        }
+                        if (nodes[index + 1]) {
+                            nodes[index].next = nodes[index + 1];
+                            nodes[index + 1].previous = nodes[index];
+                        }
+                    }
+                    doublyLinkedList.length += 1;
+                }
+            }
+            createListElement(selectedIndex, newNode);
+        }
+        /**
+        * Deletes a node from the list
+        * @param {*} delBtn - The delete button that was pressed
+        */
+        function deleteFromList(delBtn) {
+            for (let index = 0; index < list.childNodes.length; index++) {
+                if (list.childNodes[index].contains(delBtn)) {
+                    let idToDelete = index;
+                    let nodeToDelete = nodes[index];
+                    document.getElementById("list").removeChild(list.childNodes[index]);
+                    if (nodeToDelete == doublyLinkedList.tail && nodes[idToDelete - 1]) {
+                        doublyLinkedList.tail = nodes[idToDelete - 1];
+                    }
+                    if (nodeToDelete == doublyLinkedList.tail && !nodes[idToDelete - 1]) {
+                        doublyLinkedList.tail = null;
+                    }
+                    if (nodeToDelete == doublyLinkedList.head && nodes[idToDelete + 1]) {
+                        doublyLinkedList.head = nodes[idToDelete + 1];
+                        nodes[idToDelete + 1].previous = null;
+                    }
+                    if (nodeToDelete == doublyLinkedList.head && !nodes[idToDelete + 1]) {
+                        doublyLinkedList.head = null;
+                    }
+                    if (nodes[idToDelete + 1] && nodes[idToDelete - 1]) {
+                        nodes[idToDelete - 1].next = nodes[idToDelete + 1];
+                        nodes[idToDelete + 1].previous = nodes[idToDelete - 1];
+                    }
+                    if (nodes[idToDelete + 1] && !nodes[idToDelete - 1]) {
+                        nodes[idToDelete + 1].previous = null;
+                    }
+                    if (!nodes[idToDelete + 1] && nodes[idToDelete - 1]) {
+                        nodes[idToDelete - 1].next = null;
+                    }
+                    nodes.splice(idToDelete, 1);
+                    doublyLinkedList.length -= 1;
+                }
+            }
+        }
+        /**
+        * Creates a new list item for the inserted node
+        * @param {*} index - The index where the new node was inserted
+        * @param {*} newNode - The new node that was inserted
+        */
+        function createListElement(index, newNode) {
+            var div = document.createElement("div");
+            var node = document.createElement("li");
+            node.appendChild(div);
+            var delBtn = document.createElement("button");
+            var insertBtn = document.createElement("button");
+            insertBtn.className = "btn btn-primary";
+            var text = document.createTextNode(newNode.data + "\t");
+            delBtn.innerHTML = "Delete";
+            delBtn.className = "btn btn-danger";
+            insertBtn.innerHTML = "Insert";
+            delBtn.id = newNode.data;
+            insertBtn.id = newNode.data;
+            text.id = newNode.data;
+            div.id = newNode.data;
+            delBtn.onclick = function () { deleteFromList(delBtn) }
+            insertBtn.onclick = function () { insertNode(insertBtn) }
+            div.appendChild(text);
+            div.appendChild(delBtn);
+            div.appendChild(insertBtn);
+            document.getElementById("list").insertBefore(node, document.getElementById("list").childNodes[index]);
+        }
+        /**
+        * Logs doubly linked list in the console
+        */
+        function logNodes() {
+            console.log(doublyLinkedList);
+        }
+    </script>
+</body>
+
+</html>
